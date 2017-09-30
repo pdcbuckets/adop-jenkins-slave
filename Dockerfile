@@ -58,5 +58,18 @@ RUN wget -q --no-check-certificate --directory-prefix=/tmp \
 # Make Jenkins a slave by installing swarm-client
 RUN curl -s -o /bin/swarm-client.jar -k http://repo.jenkins-ci.org/releases/org/jenkins-ci/plugins/swarm-client/2.0/swarm-client-2.0-jar-with-dependencies.jar
 
+# Install JQ CLI
+RUN curl -fsSL -o /usr/bin/jq "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64" && \
+    chmod +x /usr/bin/jq
+
+# Install Ansible
+RUN yum -y install ansible && \
+    yum -y install python-boto && \
+    sed -i 's/#host_key_checking/host_key_checking/g' /etc/ansible/ansible.cfg && \
+    ansible --version
+
+# Install OpenShift CLI Tool
+RUN curl -fsSL https://github.com/openshift/origin/releases/download/v1.5.1/openshift-origin-client-tools-v1.5.1-7b451fc-linux-64bit.tar.gz | tar xzf - -C /usr/bin/ --strip-components 1 openshift-origin-client-tools-v1.5.1-7b451fc-linux-64bit/oc
+
 # Start Swarm-Client
 CMD java -jar /bin/swarm-client.jar -executors ${SLAVE_EXECUTORS} -description "${SLAVE_DESCRIPTION}" -master ${SWARM_MASTER} -username ${SWARM_USER} -password ${SWARM_PASSWORD} -name "${SLAVE_NAME}" -labels "${SLAVE_LABELS}" -mode ${SLAVE_MODE}
